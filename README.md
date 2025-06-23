@@ -1,4 +1,4 @@
-# CheatEngine-DMA
+# VMWARE CheatEngine-DMA
 Cheat Engine Plugin for DMA users ADD MORE STUFF HERE, BRIEF EXPLANATION OF WHAT IT IS IG?
 
 # Features
