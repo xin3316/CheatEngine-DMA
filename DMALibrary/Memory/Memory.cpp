@@ -3,18 +3,20 @@
 
 #include <thread>
 #include <iostream>
+#include <windows.h>
+#include <tlhelp32.h>
+#include <vector>
+#include <string>
 
 Memory::Memory()
 {
 	LOG("loading libraries...\n");
 	modules.VMM = LoadLibraryA("vmm.dll");
-	modules.FTD3XX = LoadLibraryA("FTD3XX.dll");
 	modules.LEECHCORE = LoadLibraryA("leechcore.dll");
 
-	if (!modules.VMM || !modules.FTD3XX || !modules.LEECHCORE)
+	if (!modules.VMM || !modules.LEECHCORE)
 	{
 		LOG("vmm: %p\n", modules.VMM);
-		LOG("ftd: %p\n", modules.FTD3XX);
 		LOG("leech: %p\n", modules.LEECHCORE);
 		THROW("[!] Could not load a library\n");
 	}
@@ -30,18 +32,63 @@ Memory::~Memory()
 	DMA_INITIALIZED = false;
 	PROCESS_INITIALIZED = false;
 }
+std::vector<DWORD> GetProcessIdsByName(const std::wstring & processName)
+{
+	std::vector<DWORD> pids;
+	
+	// 创建进程快照
+	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	if (hSnapshot == INVALID_HANDLE_VALUE) {
+		return pids;
+	}
+
+	PROCESSENTRY32W pe32;
+	pe32.dwSize = sizeof(PROCESSENTRY32W);
+
+	// 遍历进程列表
+	if (Process32FirstW(hSnapshot, &pe32)) {
+		do {
+			if (_wcsicmp(pe32.szExeFile, processName.c_str()) == 0) {
+				pids.push_back(pe32.th32ProcessID);
+			}
+		} while (Process32NextW(hSnapshot, &pe32));
+	}
+
+	CloseHandle(hSnapshot);
+	return pids;
+}
 
 bool Memory::DumpMemoryMap(bool debug)
 {
-	LPCSTR args[] = {const_cast<LPCSTR>(""), const_cast<LPCSTR>("-device"), const_cast<LPCSTR>("fpga://algo=0"), const_cast<LPCSTR>(""), const_cast<LPCSTR>("")};
-	int argc = 3;
+	std::vector<DWORD> pids = GetProcessIdsByName(L"vmware-vmx.exe");
+	if (pids.empty())
+	{
+		LOG("[!] No VMware process found\n");
+		return false;
+	}
+	LOG("[!] Process id is %d \n", pids[0]);
+	//const char* args[] = { "", "-printf", "-v", "-device", "vmware://ro=1,id=23520" };
+
+	// 准备参数数组
+	std::vector<std::string> argStrings;
+	argStrings.push_back("");
+	argStrings.push_back("-device");
+	argStrings.push_back("vmware://ro=1,id=" + std::to_string(pids[0]));
+
 	if (debug)
 	{
-		args[argc++] = const_cast<LPCSTR>("-v");
-		args[argc++] = const_cast<LPCSTR>("-printf");
+		argStrings.push_back("-v");
+		argStrings.push_back("-printf");
 	}
 
-	VMM_HANDLE handle = VMMDLL_Initialize(argc, args);
+	// 转换为LPCSTR数组
+	std::vector<LPCSTR> args;
+	for (const auto& arg : argStrings)
+	{
+		args.push_back(arg.c_str());
+	}
+
+	VMM_HANDLE handle = VMMDLL_Initialize(static_cast<int>(args.size()), args.data());
 	if (!handle)
 	{
 		LOG("[!] Failed to open a VMM Handle\n");
@@ -131,13 +178,12 @@ bool Memory::Init(std::string process_name, bool memMap, bool debug)
 	{
 		LOG("inizializing...\n");
 	reinit:
-		LPCSTR args[] = {const_cast<LPCSTR>(""), const_cast<LPCSTR>("-device"), const_cast<LPCSTR>("fpga://algo=0"), const_cast<LPCSTR>(""), const_cast<LPCSTR>(""), const_cast<LPCSTR>(""), const_cast<LPCSTR>("")};
-		DWORD argc = 3;
-		if (debug)
-		{
-			args[argc++] = const_cast<LPCSTR>("-v");
-			args[argc++] = const_cast<LPCSTR>("-printf");
-		}
+		std::vector<DWORD> pids = GetProcessIdsByName(L"vmware-vmx.exe");
+		// 准备参数数组
+		std::vector<std::string> argStrings;
+		argStrings.push_back("");
+		argStrings.push_back("-device");
+		argStrings.push_back("vmware://ro=1,id=" + std::to_string(pids[0]));
 
 		std::string path = "";
 		if (memMap)
@@ -160,11 +206,22 @@ bool Memory::Init(std::string process_name, bool memMap, bool debug)
 				LOG("Dumped memory map!\n");
 
 				//Add the memory map to the arguments and increase arg count.
-				args[argc++] = const_cast<LPSTR>("-memmap");
-				args[argc++] = const_cast<LPSTR>(path.c_str());
+				//args[argc++] = const_cast<LPSTR>("-memmap");
+				//args[argc++] = const_cast<LPSTR>(path.c_str());
+
+
+				argStrings.push_back("-memmap");
+				argStrings.push_back(path.c_str());
 			}
 		}
-		this->vHandle = VMMDLL_Initialize(argc, args);
+
+		// 转换为LPCSTR数组
+		std::vector<LPCSTR> args;
+		for (const auto& arg : argStrings)
+		{
+			args.push_back(arg.c_str());
+		}
+		this->vHandle = VMMDLL_Initialize(static_cast<int>(args.size()), args.data());
 		if (!this->vHandle)
 		{
 			if (memMap)

@@ -11,7 +11,6 @@ private:
 	struct LibModules
 	{
 		HMODULE VMM = nullptr;
-		HMODULE FTD3XX = nullptr;
 		HMODULE LEECHCORE = nullptr;
 	};
 
