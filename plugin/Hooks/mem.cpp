@@ -3,8 +3,8 @@
 
 #include "hooks.h"
 #include "DMALibrary/Memory/Memory.h"
-#include "Memory/memmy.h"
-#include "Memory/vad.h"
+#include "../Memory/memmy.h"
+#include "../Memory/vad.h"
 
 namespace Hooks
 {
@@ -13,7 +13,7 @@ namespace Hooks
 		if (mem.Init(dwProcessId))
 			return (HANDLE)0x69;
 
-		return false;
+		return 0;
 	}
 
 	BOOL hk_read(HANDLE hProcess, LPCVOID lpBaseAddress, LPVOID lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesRead)

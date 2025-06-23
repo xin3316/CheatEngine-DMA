@@ -21,7 +21,7 @@ ExportedFunctions Exported;
 
 void __stdcall mainmenuplugin(void)
 {
-	Exported.ShowMessage("Main menu plugin");
+	Exported.ShowMessage((char *)"Main menu plugin");
 	return;
 }
 
@@ -46,7 +46,7 @@ BOOL APIENTRY DllMain(HANDLE hModule,
 BOOL __stdcall CEPlugin_GetVersion(PPluginVersion pv, int sizeofpluginversion)
 {
 	pv->version = CESDK_VERSION;
-	pv->pluginname = "Methicc's DMA plugin";
+	pv->pluginname = (char*)"Methicc's DMA plugin";
 	return TRUE;
 }
 
@@ -161,7 +161,7 @@ BOOL __stdcall CEPlugin_InitializePlugin(PExportedFunctions ef, int pluginid)
 	Hooks::detour_function(&IsWow64Process, Hooks::hk_IsWow64Process);
 	//hk_IsWow64Process
 
-	init1.name = "DMA Methicc CE Plugin";
+	init1.name = (char*)"DMA Methicc CE Plugin";
 	init1.callbackroutine = mainmenuplugin;
 	ef->RegisterFunction(pluginid, ptMainMenu, &init1);
 	printf("Initialized Methicc's CE DMA plugin\n");

@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 
-#include "CheatEngine/cepluginsdk.h"
+#include "../CheatEngine/cepluginsdk.h"
 #include <TlHelp32.h>
 
 namespace Hooks

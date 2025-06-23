@@ -23,4 +23,7 @@
       <UniqueIdentifier>{50d1e459-69dc-4f43-9a67-7b202668311c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <Library Include="lua53-64.lib" />
+  </ItemGroup>
 </Project>
