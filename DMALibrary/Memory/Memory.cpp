@@ -179,6 +179,12 @@ bool Memory::Init(std::string process_name, bool memMap, bool debug)
 		LOG("inizializing...\n");
 	reinit:
 		std::vector<DWORD> pids = GetProcessIdsByName(L"vmware-vmx.exe");
+		if (pids.empty())
+		{
+			LOG("[!] No VMware process found\n");
+			MessageBoxA(NULL, "No VMware process found! Please start a VM and try again.", "Error", MB_ICONERROR | MB_OK);
+			return false;
+		}
 		// 准备参数数组
 		std::vector<std::string> argStrings;
 		argStrings.push_back("");
