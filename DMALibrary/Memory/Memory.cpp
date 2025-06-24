@@ -234,7 +234,7 @@ bool Memory::Init(std::string process_name, bool memMap, bool debug)
 			return false;
 		}
 
-		ULONG64 FPGA_ID = 0, DEVICE_ID = 0;
+		/*ULONG64 FPGA_ID = 0, DEVICE_ID = 0;
 
 		VMMDLL_ConfigGet(this->vHandle, LC_OPT_FPGA_FPGA_ID, &FPGA_ID);
 		VMMDLL_ConfigGet(this->vHandle, LC_OPT_FPGA_DEVICE_ID, &DEVICE_ID);
@@ -248,7 +248,7 @@ bool Memory::Init(std::string process_name, bool memMap, bool debug)
 			LOG("[!] Could not set FPGA!\n");
 			VMMDLL_Close(this->vHandle);
 			return false;
-		}
+		}*/
 
 		DMA_INITIALIZED = TRUE;
 	}
